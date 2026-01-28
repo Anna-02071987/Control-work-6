@@ -9,7 +9,6 @@ class TestForm:
     @pytest.fixture(scope="function")
     def driver(self):
         """Фикстура для инициализации драйвера Edge."""
-        # Предполагаем, что Edge Driver уже установлен в системе
         driver = webdriver.Edge()
         driver.maximize_window()
         yield driver
@@ -24,7 +23,7 @@ class TestForm:
 
         wait = WebDriverWait(driver, 10)
 
-        # Заполняем форму
+        # Заполняем форму - используем поиск по name (как рекомендовано)
         test_data = {
             "first-name": "Иван",
             "last-name": "Петров",
@@ -38,11 +37,13 @@ class TestForm:
             "company": "SkyPro"
         }
 
-        # Заполняем все поля
-        for field_id, value in test_data.items():
+        # Заполняем все поля по name атрибуту
+        for field_name, value in test_data.items():
             if value:  # заполняем только если значение не пустое
                 field = wait.until(
-                    EC.presence_of_element_located((By.ID, field_id))
+                    EC.presence_of_element_located(
+                        (By.NAME, field_name)
+                    )
                 )
                 field.clear()
                 field.send_keys(value)
@@ -57,7 +58,9 @@ class TestForm:
 
         # Проверяем, что поле Zip code подсвечено красным
         zip_code_field = wait.until(
-            EC.presence_of_element_located((By.ID, "zip-code"))
+            EC.presence_of_element_located(
+                (By.NAME, "zip-code")
+            )
         )
         zip_code_class = zip_code_field.get_attribute("class")
         assert "is-invalid" in zip_code_class, (
@@ -78,14 +81,17 @@ class TestForm:
         ]
 
         # Проверяем, что остальные поля подсвечены зеленым
-        for field_id in green_fields:
+        for field_name in green_fields:
             field = wait.until(
-                EC.presence_of_element_located((By.ID, field_id))
+                EC.presence_of_element_located(
+                    (By.NAME, field_name)
+                )
             )
             field_class = field.get_attribute("class")
             assert "is-valid" in field_class, (
-                f"Поле {field_id} должно быть зеленым"
+                f"Поле {field_name} должно быть зеленым"
             )
+
 
 
 if __name__ == "__main__":
