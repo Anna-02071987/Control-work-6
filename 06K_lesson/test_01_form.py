@@ -30,7 +30,7 @@ class TestForm:
             "address": "Ленина, 55-3",
             "e-mail": "test@skypro.com",
             "phone": "+7985899998787",
-            # "zip-code": "",  # Оставляем пустым специально
+            # "zip-code": "",  # Оставляем пустым
             "city": "Москва",
             "country": "Россия",
             "job-position": "QA",
@@ -46,29 +46,27 @@ class TestForm:
             field.send_keys(value)
 
         # Нажимаем кнопку Submit
+        submit_xpath = "//button[text()='Submit']"
         submit_button = wait.until(
-            EC.element_to_be_clickable(
-                (By.XPATH, "//button[text()='Submit']")
-            )
+            EC.element_to_be_clickable((By.XPATH, submit_xpath))
         )
         submit_button.click()
 
-        # Ждем когда применится подсветка (используем правильные классы с сайта)
+        # Ждем подсветку
         wait.until(
             EC.presence_of_element_located(
                 (By.CSS_SELECTOR, ".bg-danger, .bg-success")
             )
         )
 
-        # Проверяем, что поле Zip code подсвечено красным (N/A)
+        # Проверяем поле Zip code (красное)
         zip_code_field = driver.find_element(By.ID, "zip-code")
         zip_code_class = zip_code_field.get_attribute("class")
-        # На сайте используется bg-danger для невалидных полей
         assert "bg-danger" in zip_code_class, (
-            f"Поле Zip code должно быть красным (N/A). Класс: {zip_code_class}"
+            f"Поле Zip code должно быть красным. Класс: {zip_code_class}"
         )
 
-        # Список полей, которые должны быть зелеными/голубыми
+        # Список полей для проверки (зеленые)
         green_fields = [
             "first-name",
             "last-name",
@@ -81,11 +79,10 @@ class TestForm:
             "company"
         ]
 
-        # Проверяем, что остальные поля подсвечены зеленым/голубым
+        # Проверяем зеленые поля
         for field_id in green_fields:
             field = driver.find_element(By.ID, field_id)
             field_class = field.get_attribute("class")
-            # На сайте используется bg-success для валидных полей
             assert "bg-success" in field_class, (
                 f"Поле {field_id} должно быть зеленым. Класс: {field_class}"
             )
