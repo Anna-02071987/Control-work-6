@@ -37,7 +37,7 @@ class TestForm:
             "company": "SkyPro"
         }
 
-        # Заполняем все поля по ID (на сайте есть ID)
+        # Заполняем все поля по ID
         for field_id, value in test_data.items():
             field = wait.until(
                 EC.presence_of_element_located((By.ID, field_id))
@@ -53,21 +53,22 @@ class TestForm:
         )
         submit_button.click()
 
-        # Ждем когда применится подсветка
+        # Ждем когда применится подсветка (используем правильные классы с сайта)
         wait.until(
             EC.presence_of_element_located(
-                (By.CSS_SELECTOR, ".is-invalid, .is-valid")
+                (By.CSS_SELECTOR, ".bg-danger, .bg-success")
             )
         )
 
-        # Проверяем, что поле Zip code подсвечено красным
+        # Проверяем, что поле Zip code подсвечено красным (N/A)
         zip_code_field = driver.find_element(By.ID, "zip-code")
         zip_code_class = zip_code_field.get_attribute("class")
-        assert "is-invalid" in zip_code_class, (
-            f"Поле Zip code должно быть красным. Класс: {zip_code_class}"
+        # На сайте используется bg-danger для невалидных полей
+        assert "bg-danger" in zip_code_class, (
+            f"Поле Zip code должно быть красным (N/A). Класс: {zip_code_class}"
         )
 
-        # Список полей, которые должны быть зелеными
+        # Список полей, которые должны быть зелеными/голубыми
         green_fields = [
             "first-name",
             "last-name",
@@ -80,11 +81,12 @@ class TestForm:
             "company"
         ]
 
-        # Проверяем, что остальные поля подсвечены зеленым
+        # Проверяем, что остальные поля подсвечены зеленым/голубым
         for field_id in green_fields:
             field = driver.find_element(By.ID, field_id)
             field_class = field.get_attribute("class")
-            assert "is-valid" in field_class, (
+            # На сайте используется bg-success для валидных полей
+            assert "bg-success" in field_class, (
                 f"Поле {field_id} должно быть зеленым. Класс: {field_class}"
             )
 
