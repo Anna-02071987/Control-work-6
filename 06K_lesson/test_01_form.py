@@ -23,30 +23,27 @@ class TestForm:
 
         wait = WebDriverWait(driver, 10)
 
-        # Заполняем форму - используем поиск по name (как рекомендовано)
+        # Заполняем форму
         test_data = {
             "first-name": "Иван",
             "last-name": "Петров",
             "address": "Ленина, 55-3",
             "e-mail": "test@skypro.com",
             "phone": "+7985899998787",
-            "zip-code": "",  # Оставляем пустым
+            # "zip-code": "",  # Оставляем пустым специально
             "city": "Москва",
             "country": "Россия",
             "job-position": "QA",
             "company": "SkyPro"
         }
 
-        # Заполняем все поля по name атрибуту
-        for field_name, value in test_data.items():
-            if value:  # заполняем только если значение не пустое
-                field = wait.until(
-                    EC.presence_of_element_located(
-                        (By.NAME, field_name)
-                    )
-                )
-                field.clear()
-                field.send_keys(value)
+        # Заполняем все поля по ID (на сайте есть ID)
+        for field_id, value in test_data.items():
+            field = wait.until(
+                EC.presence_of_element_located((By.ID, field_id))
+            )
+            field.clear()
+            field.send_keys(value)
 
         # Нажимаем кнопку Submit
         submit_button = wait.until(
@@ -56,15 +53,18 @@ class TestForm:
         )
         submit_button.click()
 
-        # Проверяем, что поле Zip code подсвечено красным
-        zip_code_field = wait.until(
+        # Ждем когда применится подсветка
+        wait.until(
             EC.presence_of_element_located(
-                (By.NAME, "zip-code")
+                (By.CSS_SELECTOR, ".is-invalid, .is-valid")
             )
         )
+
+        # Проверяем, что поле Zip code подсвечено красным
+        zip_code_field = driver.find_element(By.ID, "zip-code")
         zip_code_class = zip_code_field.get_attribute("class")
         assert "is-invalid" in zip_code_class, (
-            "Поле Zip code должно быть красным"
+            f"Поле Zip code должно быть красным. Класс: {zip_code_class}"
         )
 
         # Список полей, которые должны быть зелеными
@@ -81,15 +81,11 @@ class TestForm:
         ]
 
         # Проверяем, что остальные поля подсвечены зеленым
-        for field_name in green_fields:
-            field = wait.until(
-                EC.presence_of_element_located(
-                    (By.NAME, field_name)
-                )
-            )
+        for field_id in green_fields:
+            field = driver.find_element(By.ID, field_id)
             field_class = field.get_attribute("class")
             assert "is-valid" in field_class, (
-                f"Поле {field_name} должно быть зеленым"
+                f"Поле {field_id} должно быть зеленым. Класс: {field_class}"
             )
 
 
