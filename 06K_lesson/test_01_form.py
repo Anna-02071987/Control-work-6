@@ -23,13 +23,13 @@ def test_form_validation():
             el.clear()
             el.send_keys(value)
 
-        set_value("first-name", "Иван")
-        set_value("last-name", "Петров")
-        set_value("address", "Ленина, 55-3")
+        set_value("first-name", "Ivan")
+        set_value("last-name", "Petrov")
+        set_value("address", "Lenina, 55-3")
         set_value("e-mail", "test@skypro.com")
         set_value("phone", "+7985899998787")
-        set_value("city", "Москва")
-        set_value("country", "Россия")
+        set_value("city", "Moscow")
+        set_value("country", "Russia")
         set_value("job-position", "QA")
         set_value("company", "SkyPro")
 
@@ -58,7 +58,7 @@ def test_form_validation():
             "company",
         ]
         for fid in ok_ids:
-            assert "alert-success" in result_alert(fid), f"{fid} не зелёный"
+            assert "alert-success" in result_alert(fid), f"{fid} not green"
 
     finally:
         driver.quit()

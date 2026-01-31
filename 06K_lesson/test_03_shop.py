@@ -51,7 +51,7 @@ def test_shop_purchase_total():
 
             wait.until(
                 EC.presence_of_element_located((By.CLASS_NAME,
-                                                "inventory_list"))
+                                               "inventory_list"))
             )
 
             driver.find_element(By.ID,
@@ -73,8 +73,8 @@ def test_shop_purchase_total():
                     (By.ID, "checkout_info_container"))
             )
 
-            driver.find_element(By.ID, "first-name").send_keys("Иван")
-            driver.find_element(By.ID, "last-name").send_keys("Петров")
+            driver.find_element(By.ID, "first-name").send_keys("Ivan")
+            driver.find_element(By.ID, "last-name").send_keys("Petrov")
             driver.find_element(By.ID, "postal-code").send_keys("123456")
 
             driver.find_element(By.ID, "continue").click()
