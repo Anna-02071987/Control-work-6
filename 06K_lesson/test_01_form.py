@@ -8,9 +8,7 @@ URL = "https://bonigarcia.dev/selenium-webdriver-java/data-types.html"
 
 
 def test_form_validation():
-    # ВРЕМЕННО для проверки - используем Chrome
-    driver = webdriver.Chrome()
-    # driver = webdriver.Edge()  # оригинальная строка для финальной версии
+    driver = webdriver.Edge()
     wait = WebDriverWait(driver, 20)
 
     try:
@@ -25,7 +23,6 @@ def test_form_validation():
             el.clear()
             el.send_keys(value)
 
-        # заполняем всё кроме zip-code
         set_value("first-name", "Иван")
         set_value("last-name", "Петров")
         set_value("address", "Ленина, 55-3")
@@ -43,15 +40,12 @@ def test_form_validation():
         wait.until(EC.url_contains("data-types-submitted"))
 
         def result_alert(field_id: str):
-            # на submitted странице это НЕ input, а div с id и классами
             loc = (By.ID, field_id)
             el = wait.until(EC.presence_of_element_located(loc))
             return el.get_attribute("class") or ""
 
-        # zip должен быть красным
         assert "alert-danger" in result_alert("zip-code")
 
-        # остальные должны быть зелёными
         ok_ids = [
             "first-name",
             "last-name",

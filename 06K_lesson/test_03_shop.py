@@ -10,11 +10,7 @@ URL = "https://www.saucedemo.com/"
 
 def create_driver() -> webdriver.Firefox:
     options = Options()
-
-    # Не ждём "полную загрузку" — Firefox часто зависает на get()
     options.page_load_strategy = "none"
-
-    # Убираем прокси/велком-страницы, которые мешают старту
     options.set_preference("network.proxy.type", 0)
     options.set_preference("browser.aboutwelcome.enabled", False)
     options.set_preference("browser.newtabpage.enabled", False)
@@ -35,14 +31,12 @@ def open_url_stable(driver: webdriver.Firefox,
 
     driver.execute_script("window.location.href = arguments[0];", url)
 
-    # Ждём не URL, а реальный "якорь" страницы — поле логина
     wait.until(EC.presence_of_element_located((By.ID, "user-name")))
 
 
 def test_shop_purchase_total():
     driver = None
 
-    # Ретраи с пересозданием драйвера
     for attempt in range(2):
         try:
             driver = create_driver()
@@ -94,7 +88,7 @@ def test_shop_purchase_total():
             total_value = total_text.split("$")[-1].strip()
 
             assert total_value == "58.29", (
-                f"Ожидали 58.29, получили {total_value} ({total_text})")
+                f"Expected 58.29, got {total_value} ({total_text})")
             return
 
         except Exception:

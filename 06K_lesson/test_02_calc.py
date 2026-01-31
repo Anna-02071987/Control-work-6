@@ -9,7 +9,7 @@ URL = "https://bonigarcia.dev/selenium-webdriver-java/slow-calculator.html"
 
 def test_slow_calculator():
     driver = webdriver.Chrome()
-    wait = WebDriverWait(driver, 50)  # 45 сек + запас
+    wait = WebDriverWait(driver, 50)
 
     try:
         driver.get(URL)
