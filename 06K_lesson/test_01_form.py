@@ -1,73 +1,65 @@
-import pytest
 from selenium import webdriver
 from selenium.webdriver.common.by import By
+from selenium.webdriver.firefox.options import Options
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 
+URL = "https://bonigarcia.dev/selenium-webdriver-java/data-types.html"
 
-class TestForm:
-    @pytest.fixture(scope="function")
-    def driver(self):
-        """Фикстура для инициализации драйвера Edge."""
-        driver = webdriver.Edge()
-        driver.maximize_window()
-        yield driver
-        driver.quit()
 
-    def test_form_submission(self, driver):
-        """Тест заполнения формы и проверки подсветки полей."""
-        # Открываем страницу
-        driver.get(
-            "https://bonigarcia.dev/selenium-webdriver-java/data-types.html"
-        )
+def test_form_validation():
+    options = Options()
+    options.page_load_strategy = "none"
 
-        wait = WebDriverWait(driver, 10)
+    driver = webdriver.Firefox(options=options)
+    driver.set_page_load_timeout(10)
 
-        # Заполняем форму
-        test_data = {
-            "first-name": "Иван",
-            "last-name": "Петров",
-            "address": "Ленина, 55-3",
-            "e-mail": "test@skypro.com",
-            "phone": "+7985899998787",
-            # "zip-code": "",  # Оставляем пустым
-            "city": "Москва",
-            "country": "Россия",
-            "job-position": "QA",
-            "company": "SkyPro"
-        }
+    wait = WebDriverWait(driver, 20)
 
-        # Заполняем все поля по ID
-        for field_id, value in test_data.items():
-            field = wait.until(
-                EC.presence_of_element_located((By.ID, field_id))
-            )
-            field.clear()
-            field.send_keys(value)
+    try:
+        driver.get("about:blank")
+        try:
+            driver.get(URL)
+        except Exception:
+            pass
+        driver.execute_script(f"window.location.href = '{URL}';")
 
-        # Нажимаем кнопку Submit
-        submit_xpath = "//button[text()='Submit']"
-        submit_button = wait.until(
-            EC.element_to_be_clickable((By.XPATH, submit_xpath))
-        )
-        submit_button.click()
+        wait.until(EC.presence_of_element_located((By.NAME, "first-name")))
 
-        # Ждем подсветку
+        def inp(name: str):
+            return wait.until(EC.presence_of_element_located((By.NAME, name)))
+
+        def set_value(name: str, value: str):
+            el = inp(name)
+            el.clear()
+            el.send_keys(value)
+
+        set_value("first-name", "Иван")
+        set_value("last-name", "Петров")
+        set_value("address", "Ленина, 55-3")
+        set_value("e-mail", "test@skypro.com")
+        set_value("phone", "+7985899998787")
+        set_value("city", "Москва")
+        set_value("country", "Россия")
+        set_value("job-position", "QA")
+        set_value("company", "SkyPro")
+
         wait.until(
-            EC.presence_of_element_located(
-                (By.CSS_SELECTOR, ".bg-danger, .bg-success")
+            EC.element_to_be_clickable(
+                (By.CSS_SELECTOR, "button[type='submit']")
             )
-        )
+        ).click()
 
-        # Проверяем поле Zip code (красное)
-        zip_code_field = driver.find_element(By.ID, "zip-code")
-        zip_code_class = zip_code_field.get_attribute("class")
-        assert "bg-danger" in zip_code_class, (
-            f"Поле Zip code должно быть красным. Класс: {zip_code_class}"
-        )
+        wait.until(EC.url_contains("data-types.html"))
 
-        # Список полей для проверки (зеленые)
-        green_fields = [
+        def result_alert(field_id: str):
+            loc = (By.ID, field_id)
+            el = wait.until(EC.presence_of_element_located(loc))
+            return el.get_attribute("class") or ""
+
+        assert "alert-danger" in result_alert("zip-code")
+
+        ok_ids = [
             "first-name",
             "last-name",
             "address",
@@ -76,17 +68,10 @@ class TestForm:
             "city",
             "country",
             "job-position",
-            "company"
+            "company",
         ]
+        for fid in ok_ids:
+            assert "alert-success" in result_alert(fid), f"{fid} не зелёный"
 
-        # Проверяем зеленые поля
-        for field_id in green_fields:
-            field = driver.find_element(By.ID, field_id)
-            field_class = field.get_attribute("class")
-            assert "bg-success" in field_class, (
-                f"Поле {field_id} должно быть зеленым. Класс: {field_class}"
-            )
-
-
-if __name__ == "__main__":
-    pytest.main([__file__])
+    finally:
+        driver.quit()

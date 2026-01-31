@@ -1,58 +1,54 @@
-import pytest
 from selenium import webdriver
 from selenium.webdriver.common.by import By
+from selenium.webdriver.firefox.options import Options
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 
 
-class TestCalculator:
-    @pytest.fixture(scope="function")
-    def driver(self):
-        """Фикстура для инициализации драйвера Chrome."""
-        driver = webdriver.Chrome()
-        driver.maximize_window()
-        yield driver
-        driver.quit()
+URL = "https://bonigarcia.dev/selenium-webdriver-java/slow-calculator.html"
 
-    def test_slow_calculator(self, driver):
-        """Тест медленного калькулятора."""
-        # Открываем страницу
-        url = "https://bonigarcia.dev/selenium-webdriver-java/" \
-              "slow-calculator.html"
-        driver.get(url)
 
-        wait = WebDriverWait(driver, 50)  # 45 секунд + запас
+def test_slow_calculator():
+    options = Options()
+    options.page_load_strategy = "none"
 
-        # Вводим задержку 45
-        delay_input = wait.until(
-            EC.presence_of_element_located((By.CSS_SELECTOR, "#delay"))
-        )
-        delay_input.clear()
-        delay_input.send_keys("45")
+    driver = webdriver.Firefox(options=options)
+    driver.set_page_load_timeout(10)
 
-        # Нажимаем кнопки: 7 + 8 =
-        buttons = ["7", "+", "8", "="]
-        for button in buttons:
-            btn = wait.until(
+    wait = WebDriverWait(driver, 50)
+
+    try:
+        driver.get("about:blank")
+        try:
+            driver.get(URL)
+        except Exception:
+            pass
+        driver.execute_script(f"window.location.href = '{URL}';")
+
+        wait.until(EC.presence_of_element_located((By.CSS_SELECTOR, "#delay")))
+
+        delay = driver.find_element(By.CSS_SELECTOR, "#delay")
+        delay.clear()
+        delay.send_keys("45")
+
+        def click_btn(text: str):
+            wait.until(
                 EC.element_to_be_clickable(
-                    (By.XPATH, f"//span[text()='{button}']")
+                    (By.XPATH, f"//span[normalize-space()='{text}']")
                 )
-            )
-            btn.click()
+            ).click()
 
-        # Ожидаем результат 15 через 45 секунд
+        click_btn("7")
+        click_btn("+")
+        click_btn("8")
+        click_btn("=")
+
         wait.until(
             EC.text_to_be_present_in_element(
-                (By.CLASS_NAME, "screen"), "15"
+                (By.CSS_SELECTOR, ".screen"), "15"
             )
         )
+        assert driver.find_element(By.CSS_SELECTOR, ".screen").text == "15"
 
-        # Проверяем результат
-        screen = driver.find_element(By.CLASS_NAME, "screen")
-        assert screen.text == "15", (
-            f"Ожидался результат 15, но получили {screen.text}"
-        )
-
-
-if __name__ == "__main__":
-    pytest.main([__file__])
+    finally:
+        driver.quit()
