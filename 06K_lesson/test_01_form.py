@@ -1,39 +1,31 @@
 from selenium import webdriver
 from selenium.webdriver.common.by import By
-from selenium.webdriver.firefox.options import Options
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
+
 
 URL = "https://bonigarcia.dev/selenium-webdriver-java/data-types.html"
 
 
 def test_form_validation():
-    options = Options()
-    options.page_load_strategy = "none"
-
-    driver = webdriver.Firefox(options=options)
-    driver.set_page_load_timeout(10)
-
+    # ВРЕМЕННО для проверки - используем Chrome
+    driver = webdriver.Chrome()
+    # driver = webdriver.Edge()  # оригинальная строка для финальной версии
     wait = WebDriverWait(driver, 20)
 
     try:
-        driver.get("about:blank")
-        try:
-            driver.get(URL)
-        except Exception:
-            pass
-        driver.execute_script(f"window.location.href = '{URL}';")
-
-        wait.until(EC.presence_of_element_located((By.NAME, "first-name")))
+        driver.get(URL)
 
         def inp(name: str):
-            return wait.until(EC.presence_of_element_located((By.NAME, name)))
+            return wait.until(EC.presence_of_element_located(
+                (By.NAME, name)))
 
         def set_value(name: str, value: str):
             el = inp(name)
             el.clear()
             el.send_keys(value)
 
+        # заполняем всё кроме zip-code
         set_value("first-name", "Иван")
         set_value("last-name", "Петров")
         set_value("address", "Ленина, 55-3")
@@ -46,19 +38,20 @@ def test_form_validation():
 
         wait.until(
             EC.element_to_be_clickable(
-                (By.CSS_SELECTOR, "button[type='submit']")
-            )
+                (By.CSS_SELECTOR, "button[type='submit']"))
         ).click()
-
-        wait.until(EC.url_contains("data-types.html"))
+        wait.until(EC.url_contains("data-types-submitted"))
 
         def result_alert(field_id: str):
+            # на submitted странице это НЕ input, а div с id и классами
             loc = (By.ID, field_id)
             el = wait.until(EC.presence_of_element_located(loc))
             return el.get_attribute("class") or ""
 
+        # zip должен быть красным
         assert "alert-danger" in result_alert("zip-code")
 
+        # остальные должны быть зелёными
         ok_ids = [
             "first-name",
             "last-name",
